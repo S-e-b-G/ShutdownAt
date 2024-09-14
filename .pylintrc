@@ -1,0 +1,4 @@
+[MESSAGES CONTROL]
+disable=superfluous-parens  # Doesn't raise a "Superfluous parenthesis" warning
+[MASTER]
+ignore = Test               # Ignore the Test subfolder during analysis
