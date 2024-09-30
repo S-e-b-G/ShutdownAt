@@ -45,7 +45,7 @@ def main():
     """
 
     # Create an instance of ShutdownApp with 80 minutes default delay
-    ShutdownApp(80)
+    ShutdownApp(ShutdownApp.SHUTDOWN_DEF_DELAY)
 
     return
 # end function
