@@ -17,7 +17,8 @@ import os                                       # For file operations and shutdo
 from datetime import datetime, timedelta        # To manage time calculations
 
 # THIRD-PARTY libraries
-from tkinter import Tk, Entry, Label, Button, Frame, END, Toplevel  # GUI Components
+    # GUI Components:
+from tkinter import Tk, Entry, Label, Button, Frame, END, Toplevel, BooleanVar, Checkbutton
 import tkinter.messagebox as mb                 # Message boxes for user warnings
 import subprocess                               # For executing shutdown command
 import winsound                                 # To make a sound
@@ -29,8 +30,8 @@ import winsound                                 # To make a sound
 ##################
 # Path to the shutdown shortcut
 SHUTDOWN_BAT_PATH = "D:/_Cloud/MEGA/EtudierCAD/_PartageSeb/Info-Tech/Appli/Scripts/PC-SGPro/Store apps and Shutdown.bat"  # Constant => pylint: disable=C0103, C0301
-# Fallback shutdown command
-SHUTDOWN_COMMAND = "rundll32.exe powrprof.dll,SetSuspendState 0,1,0"  # Constant => pylint: disable=C0103
+# Hibernation command
+HIBERNATE_COMMAND   = "rundll32.exe powrprof.dll,SetSuspendState 0,1,0" # Constant => pylint: disable=C0103
 
 # Window settings
 WIN_WIDTH = 100  # Constant => pylint: disable=C0103
@@ -90,14 +91,14 @@ class ShutdownApp:
 
         # Create the root window
         self.root = Tk()
-        self.root.title("Extinction")
+        self.root.title("Extinction/Hibernation")
         self.root.geometry(f"+{int((1920 - WIN_WIDTH) / 2)}+{int((1080 - WIN_HEIGHT) / 2)}")
         self.root.attributes('-topmost', True)
         self.root.focus_force()
 
 
         # Create a label to instruct the user
-        Label(self.root, text="Extinction à (HH.MM) :").pack()
+        Label(self.root, text="Extinction/Hibernation à (HH.MM) :").pack()
 
 
         # Create the entry widget for user input
@@ -113,6 +114,15 @@ class ShutdownApp:
         self.time_entry.insert(0, l_text)
         self.time_entry.focus_set()
         self.time_entry.select_range(0, END)
+
+
+        self.shutdown_option = BooleanVar(value=True)  # Default is checked for shutdown
+        self.option_checkbox = Checkbutton(
+            self.root,
+            text="Hibernation (vide) /\n Extinction (coché)",
+            variable=self.shutdown_option
+        )
+        self.option_checkbox.pack()
 
 
         # Create buttons for "OK" and "Cancel"
@@ -522,21 +532,27 @@ class ShutdownApp:
         None
         """
 
-        # Verify if the shortcut exists
-        if os.path.exists(SHUTDOWN_BAT_PATH):
-            try:
-                # Execute the .bat file using subprocess.run()
-                result = subprocess.run([SHUTDOWN_BAT_PATH], shell=True, check=True)
+        if self.shutdown_option.get():  # Checked: shutdown
+            # Verify if the shortcut exists
+            if os.path.exists(SHUTDOWN_BAT_PATH):
+                try:
+                    # Execute the .bat file using subprocess.run()
+                    result = subprocess.run([SHUTDOWN_BAT_PATH], shell=True, check=True)
 
-                # Optional: Print the result, which includes exit code and output
-                print(f"Batch file executed successfully with return code: {result.returncode}")
-            except subprocess.CalledProcessError as e:
-                print(f"Error executing the .bat file: {e}.\nExecute the shutdown command.")
-                # Fallback to system shutdown command
+                    # Optional: Print the result, which includes exit code and output
+                    print(f"Batch file executed successfully with return code: {result.returncode}")
+                except subprocess.CalledProcessError as e:
+                    print(f"Error executing the .bat file: {e}.\nExecute the shutdown command.")
+                    # Fallback to system shutdown command
+                    subprocess.run(["shutdown", "/s", "/t", "0"], check=True)
+            else:
+                print("Batch file not found.\nExecute the shutdown command.")
                 subprocess.run(["shutdown", "/s", "/t", "0"], check=True)
-        else:
-            print("Batch file not found.\nExecute the shutdown command.")
-            subprocess.run(["shutdown", "/s", "/t", "0"], check=True)
+        else: # Unchecked: hibernate
+            # subprocess.run(["shutdown", "/h"], check=True)
+            os.system(HIBERNATE_COMMAND)
+        # endif
+
 
         return
     # end function
