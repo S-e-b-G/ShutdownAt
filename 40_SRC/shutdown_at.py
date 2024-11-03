@@ -11,7 +11,7 @@
 # IMPORT SECTION
 ##################
 # STANDARD libraries
-import sys                                      # To close the program
+# import sys                                      # To close the program
 import time                                     # For time checking and delays
 import os                                       # For file operations and shutdown execution
 from datetime import datetime, timedelta        # To manage time calculations
@@ -21,7 +21,7 @@ from datetime import datetime, timedelta        # To manage time calculations
 from tkinter import Tk, Entry, Label, Button, Frame, END, Toplevel, BooleanVar, Checkbutton
 import tkinter.messagebox as mb                 # Message boxes for user warnings
 import subprocess                               # For executing shutdown command
-import winsound                                 # To make a sound
+# import winsound                                 # To make a sound
 
 
 
@@ -119,7 +119,7 @@ class ShutdownApp:
         self.shutdown_option = BooleanVar(value=True)  # Default is checked for shutdown
         self.option_checkbox = Checkbutton(
             self.root,
-            text="Hibernation (vide) /\n Extinction (coché)",
+            text="Extinction (coché) /\nHibernation (vide)",
             variable=self.shutdown_option
         )
         self.option_checkbox.pack()
@@ -135,6 +135,9 @@ class ShutdownApp:
         cancel_button = Button(button_frame, text="Annuler", command=self.root.destroy)
         cancel_button.pack(side="right")
 
+
+        ## Timer window message
+        self.timer_message = ""
 
         # Timer related
         self.timer_window           = None
@@ -243,7 +246,11 @@ class ShutdownApp:
             self.start_button.config(state="disabled")
 
             # Create the timer window
-            self.create_timer_window("Extinction dans")
+            self.timer_message = "Hibernation dans"
+            if(self.shutdown_option.get()):
+                self.timer_message = "Extinction dans"
+            #else: message Extinction
+            self.create_timer_window()
 
             # Hide the main window
             self.root.withdraw()
@@ -263,7 +270,7 @@ class ShutdownApp:
     # TIMER WINDOW RELATED
     ######################
 
-    def create_timer_window(self, message):
+    def create_timer_window(self):
         """
         Create a new window to display the timer.
 
@@ -284,7 +291,9 @@ class ShutdownApp:
         self.timer_bind_shortcuts(self.timer_window)
 
         # Create labels to display the timer
-        message_label = Label(self.timer_window, text=message, font=("Calibri", 10, "italic"))
+        message_label = Label(self.timer_window,
+                              text=self.timer_message,
+                              font=("Calibri", 10, "italic"))
         message_label.pack(padx=5)
         message_label.config(bg=self.TMR_WIN_BACKGD_COLOR)
         message_label.config(fg=self.TMR_WIN_TEXT_MSG_COLOR)
@@ -301,8 +310,7 @@ class ShutdownApp:
 
         self.timer_countdown(self.timer_window,
                              message_label,
-                             timer_label,
-                             message)
+                             timer_label)
 
         return
     # end function
@@ -341,13 +349,12 @@ class ShutdownApp:
 
 
 
-    def timer_countdown(self, window, message_label, timer_label, message):
+    def timer_countdown(self, window, message_label, timer_label):
         """
         Perform countdown and display timer.
 
         Args:
             time_difference (timedelta): The time difference between target and current time.
-            message (str): The message to display when the timer reaches zero.
             timer_label (Label): The label to display the timer.
         """
         timer_time = datetime.strptime(self.shutdown_time, "%H.%M").time()
@@ -381,43 +388,43 @@ class ShutdownApp:
             timer_label.config(text=f'{hours:02d}:{(minutes):02d}')
 
             timer_label.after(1000, self.timer_countdown, window,
-                              message_label, timer_label, message)
+                              message_label, timer_label)
         # about to shutdown
 
         return
 
 
 
-    def custom_messagebox(self, parent, title, message):
-        """
-        Display.
-        """
-        parent.destroy()
+    # def custom_messagebox(self, parent, title, message):
+    #     """
+    #     Display.
+    #     """
+    #     parent.destroy()
 
-        dialog = Toplevel()
-        dialog.title(title)
-        dialog.attributes('-topmost', 'true')
-        dialog.config(bg = 'red')
+    #     dialog = Toplevel()
+    #     dialog.title(title)
+    #     dialog.attributes('-topmost', 'true')
+    #     dialog.config(bg = 'red')
 
-        label = Label(dialog, text=str(self.time_entry.get()), font=("Calibri", 10, "italic"))
-        label.pack(padx=180, pady=0)
-        label.config(bg = 'red', fg='#D0D0D0')
+    #     label = Label(dialog, text=str(self.time_entry.get()), font=("Calibri", 10, "italic"))
+    #     label.pack(padx=180, pady=0)
+    #     label.config(bg = 'red', fg='#D0D0D0')
 
-        label = Label(dialog, text=message, font=("Calibri", 16, "bold"))
-        label.pack(padx=10, pady=3)
-        label.config(bg = 'red', fg='#E8E8E8')
+    #     label = Label(dialog, text=message, font=("Calibri", 16, "bold"))
+    #     label.pack(padx=10, pady=3)
+    #     label.config(bg = 'red', fg='#E8E8E8')
 
-        ok_button = Button(dialog, text='OK', command=sys.exit)
-        ok_button.pack(pady=10)
+    #     ok_button = Button(dialog, text='OK', command=sys.exit)
+    #     ok_button.pack(pady=10)
 
-        dialog.focus_force()  # Set focus to this window
-        dialog.grab_set()     # Grab focus
+    #     dialog.focus_force()  # Set focus to this window
+    #     dialog.grab_set()     # Grab focus
 
-        # Play a sound
-        winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
+    #     # Play a sound
+    #     winsound.PlaySound("SystemAsterisk", winsound.SND_ALIAS)
 
-        return
-    # End function
+    #     return
+    # # End function
 
 
 
@@ -475,7 +482,8 @@ class ShutdownApp:
         elif l_current_time == self.get_two_minutes_before(self.shutdown_time) and \
              not self.warning_shown:
             # Warn the user two minutes before shutdown
-            mb.showwarning("Warning", "Extinction dans deux minutes")
+            l_message = self.timer_message + "deux minutes"
+            mb.showwarning("Warning", l_message)
             self.warning_shown = True
 
         # Re-check after 1 second
