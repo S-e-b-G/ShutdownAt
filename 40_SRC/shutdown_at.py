@@ -11,7 +11,7 @@
 # IMPORT SECTION
 ##################
 # STANDARD libraries
-# import sys                                      # To close the program
+import sys                                      # To close the program
 import time                                     # For time checking and delays
 import os                                       # For file operations and shutdown execution
 from datetime import datetime, timedelta        # To manage time calculations
@@ -479,6 +479,10 @@ class ShutdownApp:
         # Check if it's time to shut down
         if l_current_time >= self.shutdown_time:
             self.shutdown()
+            # In case of hibernate: exit the program not to loop in hibernate cmd
+            self.root.quit()    # Quit the main event loop
+            self.root.destroy() # Destroy the main window
+            sys.exit(0)         # Exit the program
         elif l_current_time == self.get_two_minutes_before(self.shutdown_time) and \
              not self.warning_shown:
             # Warn the user two minutes before shutdown
